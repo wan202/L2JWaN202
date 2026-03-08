@@ -52,23 +52,8 @@
 				<exclude name="loginserver.properties" />
 			</fileset>
 		</copy>
-		<copy todir="${build.dist.game}/config/en">
-			<fileset dir="config/en">
-				<include name="*.properties" />
-				<include name="chatfilter.txt" />
-				<exclude name="banned_ips.properties" />
-				<exclude name="loginserver.properties" />
-			</fileset>
-		</copy>
 		<copy todir="${build.dist.login}/config">
 			<fileset dir="config">
-				<include name="banned_ips.properties" />
-				<include name="logging.properties" />
-				<include name="loginserver.properties" />
-			</fileset>
-		</copy>
-		<copy todir="${build.dist.login}/config/en">
-			<fileset dir="config/en">
 				<include name="banned_ips.properties" />
 				<include name="logging.properties" />
 				<include name="loginserver.properties" />

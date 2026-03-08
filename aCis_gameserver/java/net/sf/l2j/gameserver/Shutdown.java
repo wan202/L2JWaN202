@@ -275,17 +275,21 @@ public class Shutdown extends Thread
 		_counterInstance.start();
 	}
 	
-	/**
-	 * This function aborts a running countdown.
-	 * @param player : The {@link Player} who issued the abort process.
-	 */
 	public void abort(Player player)
+	{
+		abort(player, "");
+	}
+
+	public void abort(Player player, String ghostEntity)
 	{
 		if (_counterInstance != null)
 		{
-			LOGGER.info("GM: {} aborted {} process.", player.toString(), MODE_TEXT[_shutdownMode]);
+			if (player != null)
+				LOGGER.info("GM: {} aborted {} process.", player.toString(), MODE_TEXT[_shutdownMode]);
+			else if (ghostEntity != null && !ghostEntity.isEmpty())
+				LOGGER.info("Entity: {} aborted {} process.", ghostEntity, MODE_TEXT[_shutdownMode]);
+
 			_counterInstance.setMode(ABORT);
-			
 			World.announceToOnlinePlayers("Server aborted " + MODE_TEXT[_shutdownMode] + " process and continues normal operation.");
 		}
 	}

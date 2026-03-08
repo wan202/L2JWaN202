@@ -127,6 +127,10 @@ import net.sf.l2j.gameserver.taskmanager.RandomZoneTaskManager;
 import net.sf.l2j.gameserver.taskmanager.ShadowItemTaskManager;
 import net.sf.l2j.gameserver.taskmanager.WaterTaskManager;
 
+import l2jw.TeleportInterface.TeleportLocationData;
+import java.awt.GraphicsEnvironment;
+import l2jw.panel.ServerPanelMain;
+
 public class GameServer
 {
 	private static final CLogger LOGGER = new CLogger(GameServer.class.getName());
@@ -221,6 +225,30 @@ public class GameServer
 					return newValue;
 				};
 			});
+		}
+		
+		try (InputStream is = new FileInputStream(Config.CONFIG_PATH.resolve("logging.properties").toFile()))
+		{
+			LogManager.getLogManager().updateConfiguration(is, (key) ->
+			{
+				return (oldValue, newValue) ->
+				{
+					if (key.endsWith(".pattern"))
+					{
+						if (Config.DEV_MODE)
+							return Config.BASE_PATH.resolve("dev").resolve("game").resolve(newValue).toString();
+						else
+							return Config.BASE_PATH.resolve(newValue).toString();
+					}
+					return newValue;
+				};
+			});
+		}
+
+		if (!GraphicsEnvironment.isHeadless())
+		{
+			System.out.println("GameServer: Running in Control Panel.");
+			ServerPanelMain.start();
 		}
 		
 		StringUtil.printSection("Config");
@@ -359,7 +387,7 @@ public class GameServer
 		if (Config.ALLOW_FISH_CHAMPIONSHIP)
 			FishingChampionshipManager.getInstance();
 		
-		StringUtil.printSection("RUSaCis");
+		StringUtil.printSection("L2JWaN202");
 		if ((Config.OFFLINE_TRADE_ENABLE || Config.OFFLINE_CRAFT_ENABLE) && Config.RESTORE_OFFLINERS)
 			OfflineTradersTable.getInstance().restore();
 		
@@ -409,6 +437,9 @@ public class GameServer
 			ThreadPool.schedule(new NpcSpawn(), Config.PTS_EMULATION_SPAWN_DURATION * 1000);
 		else
 			SpawnManager.getInstance().spawn();
+		
+		StringUtil.printSection("Gk Interface");
+		TeleportLocationData.getInstance();
 		
 		StringUtil.printSection("Handlers");
 		LOGGER.info("Loaded {} admin command handlers.", AdminCommandHandler.getInstance().size());
@@ -469,6 +500,7 @@ public class GameServer
 			System.exit(1);
 		}
 		_selectorThread.start();
+		
 	}
 	
 	public class NpcSpawn implements Runnable

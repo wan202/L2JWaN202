@@ -31,8 +31,13 @@ import net.sf.l2j.gameserver.model.olympiad.OlympiadManager;
 import net.sf.l2j.gameserver.model.spawn.ASpawn;
 import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
+import net.sf.l2j.gameserver.network.serverpackets.MagicSkillUse;
 import net.sf.l2j.gameserver.network.serverpackets.NpcHtmlMessage;
+import net.sf.l2j.gameserver.network.serverpackets.SystemMessage;
 import net.sf.l2j.gameserver.scripting.QuestState;
+
+import l2jw.TeleportInterface.TeleLocation;
+import l2jw.TeleportInterface.TeleportLocationData;
 
 public final class RequestBypassToServer extends L2GameClientPacket
 {
@@ -135,6 +140,54 @@ public final class RequestBypassToServer extends L2GameClientPacket
 			{
 			}
 		}
+		
+		if (_command.startsWith("goto ")) {
+            final StringTokenizer st = new StringTokenizer(_command, " ");
+            st.nextToken(); 
+
+            
+            if (st.hasMoreTokens()) {
+                String targetLocation = st.nextToken();
+                
+                int teleportId = extractLastInteger(targetLocation);
+
+                
+                if (!checkallowed(player)) {
+                    return;
+                }
+
+               
+                TeleLocation list = TeleportLocationData.getInstance().getTeleportLocation(teleportId);
+                if (list == null) {
+                    return;
+                }
+
+                if (!isNoble(player, teleportId)) {
+                	player.sendMessage("Solo Los Nobles Pueden Ir a Esta Zone");
+                	return;
+                	}
+                
+                int price;
+                
+                
+             
+                if (shouldChargePrice(teleportId) || (player.getStatus().getLevel() > 40 )) {
+                    price = list.getPrice();
+                } else {
+                    price = 0;
+                }
+
+                
+                if (player.destroyItemByItemId(57, price, true)) {
+                    MagicSkillUse MSU = new MagicSkillUse(player, player, 2036, 1, 1, 0);
+                    player.broadcastPacket(MSU);
+                    player.teleToLocation(list);
+                    player.sendPacket(new SystemMessage(SystemMessageId.WILL_BE_MOVED_INTERFACE));
+                }
+
+                player.sendPacket(ActionFailed.STATIC_PACKET);
+            }
+        }
 		// Navigate throught Manor windows
 		else if (_command.startsWith("manor_menu_select?"))
 		{
@@ -285,5 +338,69 @@ public final class RequestBypassToServer extends L2GameClientPacket
 		final IBypassHandler handler = BypassHandler.getInstance().getHandler(_command);
 		if (handler != null)
 			handler.useBypass(_command, player, null);
+	}
+	
+	private int extractLastInteger(String input) {
+        String[] parts = input.split("\\.");
+        if (parts.length > 0) {
+            String lastPart = parts[parts.length - 1];
+            try {
+                return Integer.parseInt(lastPart);
+            } catch (NumberFormatException e) {
+                
+            }
+        }
+        return -1; 
+    }
+    
+    private boolean isNoble(Player player, int teleportId) {
+    int[] nobleZones = {154754, 154761, 154755, 154756, 154757, 154758, 154759, 154760, 159761, 154762, 154768, 154763, 154764, 154765, 154767};
+     
+    for (int zone : nobleZones) {
+    if (teleportId == zone && !player.isNoble()) {
+    return false;
+    }
+    }
+    return true;
+    }
+
+    private boolean shouldChargePrice(int teleportId) {
+        int[] chargeAlwaysIds = {151782, 151791, 151785, 151787, 151786, 151783, 151788, 151784};
+
+        for (int id : chargeAlwaysIds) {
+            if (teleportId == id) {
+                return true;
+            }
+        }
+        return false;
+    }  
+    
+	public static boolean checkallowed(Player activeChar)
+	{
+		
+		String msg = null;
+		if (activeChar.isSitting())
+			msg = "No Puedes Usar El Teleport Sentado";
+		else if (activeChar.isDead())
+			msg = "No Puedes Usar El Teleport Muerto";
+		else if (activeChar.getPvpFlag() > 0)
+			msg = "Estas En Modo Flag No Puedes Teleport";
+		else if (activeChar.getKarma() > 0)
+			msg = "Estas En Modo Pk No Puedes Teleport";
+		else if (activeChar.isInCombat())
+			msg = "No Puedes Usar El Teleport En Combate";
+		else if (activeChar.isInDuel())
+			msg = "No Puedes Usar El Teleport En Duelos";
+		else if (activeChar.isInOlympiadMode())
+			msg = "No Puedes Usar El Teleport En Olympiadas";
+		else if (activeChar.isInJail())
+			msg = "No Puedes Usar El Teleport En Jail";
+		
+		if (msg != null)
+		{
+			activeChar.sendMessage(msg);
+		}
+		
+		return msg == null;
 	}
 }

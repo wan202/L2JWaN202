@@ -37,6 +37,8 @@ import net.sf.l2j.gameserver.handler.IAdminCommandHandler;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.Player;
 
+import l2jw.TeleportInterface.TeleportLocationData;
+
 public class AdminReload implements IAdminCommandHandler
 {
 	private static final String[] ADMIN_COMMANDS =
@@ -109,6 +111,11 @@ public class AdminReload implements IAdminCommandHandler
 				{
 					MultisellData.getInstance().reload();
 					player.sendMessage("The multisell instance has been reloaded.");
+				}
+				else if (type.equals("teleto")) 
+				{
+					TeleportLocationData.getInstance().reload();
+					player.sendMessage("Teleport Reloads.");
 				}
 				else if (type.equals("npc"))
 				{
@@ -229,7 +236,7 @@ public class AdminReload implements IAdminCommandHandler
 		player.sendMessage("Usage : //reload <admin|announcement|buylist|config>");
 		player.sendMessage("Usage : //reload <crest|cw|door|htm|item|multisell|npc>");
 		player.sendMessage("Usage : //reload <npcwalker|script|skill|teleport|zone>");
-		player.sendMessage("Usage : //reload <spawnlist|sysstring|capsule|donate|mission>");
+		player.sendMessage("Usage : //reload <spawnlist|sysstring|teleto|capsule|donate|mission>");
 		player.sendMessage("Usage : //reload <skins|enchant|auction|pccafe|restart>");
 		player.sendMessage("Usage : //reload <observer|poly|pvpdata>");
 	}
